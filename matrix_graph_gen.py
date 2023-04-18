@@ -79,32 +79,34 @@ def make_graph(inputs:List[matrix], ends:List[matrix], stop_criteria:str, stop_b
         NODES.add(p)
         h = p.__hash__()
 
+        #if we're set to stop on some matrices, and we just reached one of them
+        if len(END_SET) > 0 and p in END_SET:
+            #stopping on "all" means we just remove this one
+            if stop_criteria == 'all':
+                END_SET.remove(p)
+            #then check if the set is empty now
+            #either that, or we're stopping on any
+            if len(END_SET) == 0 or stop_criteria == 'any':
+                #soft stop = don't add new nodes
+                if stop_behavior == 'soft':
+                    ok_to_add = False
+                #hard stop = quit with what we have
+                else:
+                    return (NODES, EDGES)
+
         #for each set of 2 rows, and each valid scalar
         for r1 in range(ROWS):
             for r2 in range(ROWS):
                 for s in range(1,BASE):
-                    #perform the operation on a copy of the matrix
+                    #perform the operation
                     _p = p.copy()
                     _p.AddRows(r1,r2,s)
+                    
+                    #add node
                     if ok_to_add and _p not in NODES:
                         q.put(_p)
 
-                    #if we're set to stop on some matrices, and we just reached one of them
-                    if len(END_SET) > 0 and _p in END_SET:
-                        #stopping on "all" means we just remove this one
-                        if stop_criteria == 'all':
-                            END_SET.remove(_p)
-                        #then check if the set is empty now
-                        #either that, or we're stopping on any
-                        if len(END_SET) == 0 or stop_criteria == 'any':
-                            #soft stop = don't add new nodes
-                            if stop_behavior == 'soft':
-                                ok_to_add = False
-                            #hard stop = quit with what we have
-                            else:
-                                break
-                    
-                    #add edges
+                    #add edge
                     dh = _p.__hash__()
                     if include_self_transitions or not h == dh:
                         if not (h,dh) in EDGES:
@@ -274,7 +276,7 @@ if __name__ == "__main__":
     NODES, EDGES = make_graph(STARTS, ENDS, parsedArgs.stop_criteria, parsedArgs.stop_behavior, parsedArgs.include_self_transitions)
     
     if len(ENDS) > 0:
-        logging.info("Found a path to and end!" if any(e in NODES for e in ENDS) else "Didn't find a path to any ends...")
+        logging.info("Found a path to an end!" if any(e in NODES for e in ENDS) else "Didn't find a path to any ends...")
     
     logging.info(f"{len(NODES)} Nodes, {len(EDGES)} Edges")
 
