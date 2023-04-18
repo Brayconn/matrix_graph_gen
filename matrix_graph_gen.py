@@ -209,22 +209,21 @@ if __name__ == "__main__":
 
     root.addHandler(handler)
 
-    parser = argparse.ArgumentParser(description="Graph all matrices reachable from a given start point")
-    parser.add_argument("--start", nargs="+", required=True)
-    parser.add_argument("--end", nargs="*")
-    parser.add_argument("--base", type=int, default=-1)
+    parser = argparse.ArgumentParser(description="Graph all matrices reachable from the given start point(s)")
+    parser.add_argument("--start", nargs="+", required=True, help="What matrices to start generation from")
+    parser.add_argument("--end", nargs="*", help="What matrices are trying to be reached")
+    parser.add_argument("--base", type=int, default=-1, help="What number base the matrices are in (use a value less than 0 or omit argument for automatic detection)")
     #TODO make these follow whatever operations are provided
-    parser.add_argument("--permute_starts", action='store_true')
-    parser.add_argument("--permute_ends", action='store_true')
+    parser.add_argument("--permute_starts", action="store_true", help="Whether or not to permute the starting matrices (uses all allowed operations)")
+    parser.add_argument("--permute_ends", action="store_true", help="Whether or not to permute the ending matrices (uses all allowed operations)")
 
-    parser.add_argument("--ops", default="rows", choices=["rows","columns","all"])
-    parser.add_argument("--stop_criteria", default="any", choices=["any", "all"])
-    parser.add_argument("--stop_behavior", default="hard", choices=["hard", "soft"])
-    parser.add_argument("--include_self_transitions", action='store_true')
+    parser.add_argument("--ops", default="rows", choices=["rows","columns","all"], help="What operations are allowed (row operations, column operations, or all operations)")
+    parser.add_argument("--stop_criteria", default="any", choices=["any", "all"], help="When to stop generating the graph (any = once ANY end graph has been reached, all = once ALL end graphs have been reached)")
+    parser.add_argument("--stop_behavior", default="hard", choices=["hard", "soft"], help="What to do once the stop criteria is reached (hard = make no further changes to the graph, soft = finish processing all nodes in the queue first)")
+    parser.add_argument("--include_self_transitions", action='store_true', help="Whether or not to include self transitions")
     
-    parser.add_argument("--dot_out")
-    parser.add_argument("--plantuml_out")
-    parser.add_argument("--verbose")
+    parser.add_argument("--dot_out", help="Where to output a dot file to (for use with graphviz)")
+    parser.add_argument("--plantuml_out", help="Where to output a plantuml file to")
 
     parsedArgs = parser.parse_args()
 
@@ -283,7 +282,7 @@ if __name__ == "__main__":
     combinations_found = sum(len(x) for x in EDGES.values())
     self_transitions = sum(len(v) for k,v in EDGES.items() if k[0] == k[1])
 
-    print(f"{combinations_found} Row Operations, {self_transitions} Self Transitions, {len(EDGES) - self_transitions} Unique Transitions")
+    logging.info(f"{combinations_found} Row Operations, {self_transitions} Self Transitions, {len(EDGES) - self_transitions} Unique Transitions")
 
     if not parsedArgs.dot_out == None:
         make_graphviz(parsedArgs.dot_out, STARTS, NODES, EDGES)
